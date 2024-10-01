@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Tracker</title>
+
+    <!-- Embedded CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .missions-container {
+            display: block;
+            margin-top: 20px;
+        }
+
+        .mission-column {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+        }
+
+        .mission-column h3 {
+            margin-bottom: 10px;
+        }
+
+        .mission-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .date-column {
+            width: 150px;
+            padding: 10px;
+            text-align: left;
+            background-color: #f0f0f0;
+            border-right: 1px solid #ccc;
+        }
+
+        .mission-column {
+            width: 150px;
+            padding: 10px;
+            text-align: center;
+            border-left: 1px solid #ccc;
+        }
+
+        /* Additional margin */
+        .margin-top {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="setup-container">
+        <h2>Set Your Free Time</h2>
+        <form id="free-time-form">
+            <label>Monday: <input type="number" id="mon" placeholder="Hours"/></label><br/>
+            <label>Tuesday: <input type="number" id="tue" placeholder="Hours"/></label><br/>
+            <label>Wednesday: <input type="number" id="wed" placeholder="Hours"/></label><br/>
+            <label>Thursday: <input type="number" id="thu" placeholder="Hours"/></label><br/>
+            <label>Friday: <input type="number" id="fri" placeholder="Hours"/></label><br/>
+            <label>Saturday: <input type="number" id="sat" placeholder="Hours"/></label><br/>
+            <label>Sunday: <input type="number" id="sun" placeholder="Hours"/></label><br/>
+            <button type="submit">Save Free Time</button>
+        </form>
+    </div>
+
+    <div id="mission-container" style="display:none;" class="margin-top">
+        <h2>Add Mission</h2>
+        <form id="mission-form">
+            <label>Task Title: <input type="text" id="task-title" placeholder="Title"/></label><br/>
+            <label>Total Time (hours): <input type="number" id="task-time" placeholder="Hours"/></label><br/>
+            <label>Start Date (dd/mm/yy): <input type="date" id="task-start-date"/></label><br/>
+            <label>Deadline (dd/mm/yy): <input type="date" id="task-deadline"/></label><br/>
+            <button type="submit">Add Mission</button>
+        </form>
+        <div id="mission-output" class="missions-container"></div> <!-- Missions will be displayed here -->
+    </div>
+
+    <!-- Embedded JavaScript -->
+    <!-- Embedded JavaScript -->
+    <script>
+        // Store free time per day in an object
+        let freeTime = {
+            mon: 0,
+            tue: 0,
+            wed: 0,
+            thu: 0,
+            fri: 0,
+            sat: 0,
+            sun: 0
+        };
+
+        let allMissions = []; // To keep track of all missions and their times
+        let editingMissionIndex = null; // To keep track of the mission being edited
+
+        // Show the free time setup form
+        document.getElementById('setup-btn').addEventListener('click', () => {
+            document.getElementById('setup-container').style.display = 'block';
+        });
+
+        // Handle free time form submission
+        document.getElementById('free-time-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Save free time for each day
+            freeTime.mon = Number(document.getElementById('mon').value);
+            freeTime.tue = Number(document.getElementById('tue').value);
+            freeTime.wed = Number(document.getElementById('wed').value);
+            freeTime.thu = Number(document.getElementById('thu').value);
+            freeTime.fri = Number(document.getElementById('fri').value);
+            freeTime.sat = Number(document.getElementById('sat').value);
+            freeTime.sun = Number(document.getElementById('sun').value);
+
+            // Hide the setup container and show the mission form
+            document.getElementById('setup-container').style.display = 'none';
+            document.getElementById('mission-container').style.display = 'block';
+        });
+
+        // Handle mission form submission
+        document.getElementById('mission-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const mission = {
+                title: document.getElementById('task-title').value,
+                time: Number(document.getElementById('task-time').value),
+                startDate: document.getElementById('task-start-date').value,
+                deadline: document.getElementById('task-deadline').value
+            };
+
+            if (editingMissionIndex !== null) {
+                // Update existing mission if editing
+                allMissions[editingMissionIndex] = mission;
+                editingMissionIndex = null;
+            } else {
+                // Add new mission
+                allMissions.push(mission);
+            }
+
+            // Clear the form
+            document.getElementById('mission-form').reset();
+
+            // Display the updated mission list
+            displayMissions();
+        });
+
+        // Function to display all missions
+        function displayMissions() {
+            const missionOutput = document.getElementById('mission-output');
+            missionOutput.innerHTML = ''; // Clear previous output
+
+            allMissions.forEach((mission, index) => {
+                const missionDiv = document.createElement('div');
+                missionDiv.classList.add('mission-column');
+                missionDiv.innerHTML = `
+                    <h3>${mission.title}</h3>
+                    <p>Time: ${mission.time} hours</p>
+                    <p>Start: ${mission.startDate}</p>
+                    <p>Deadline: ${mission.deadline}</p>
+                    <button onclick="editMission(${index})">Edit</button>
+                    <button onclick="deleteMission(${index})">Delete</button>
+                `;
+                missionOutput.appendChild(missionDiv);
+            });
+        }
+
+        // Function to edit a mission
+        function editMission(index) {
+            const mission = allMissions[index];
+            document.getElementById('task-title').value = mission.title;
+            document.getElementById('task-time').value = mission.time;
+            document.getElementById('task-start-date').value = mission.startDate;
+            document.getElementById('task-deadline').value = mission.deadline;
+
+            editingMissionIndex = index; // Set the index for editing
+        }
+
+        // Function to delete a mission
+        function deleteMission(index) {
+            allMissions.splice(index, 1); // Remove mission from the array
+            displayMissions(); // Refresh the displayed missions
+        }
+    </script>
+</body>
+</html>
